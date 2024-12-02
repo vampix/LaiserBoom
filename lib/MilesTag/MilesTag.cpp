@@ -56,13 +56,13 @@ extern "C" {
 // #define ZERO_US 800
 // #define OFFSET 150
 
-#define SHOT_HEADER_US 3000  // Header when send a shot
-#define CMD_HEADER_US 4000   // Header when send a command
+#define SHOT_HEADER_US 2400  // Header when send a shot
+#define CMD_HEADER_US 2400   // Header when send a command
 #define CMD_EXTRA_US 5000    // Marker indicating extra data
 #define END_US 6000          // End Marker
-#define SPACE_US 1000
-#define ONE_US 2000
-#define ZERO_US 1000
+#define SPACE_US 600
+#define ONE_US 1200
+#define ZERO_US 600
 #define OFFSET 100
 
 #define SIGNAL_ID_HIT 0x01
@@ -157,7 +157,7 @@ void MilesTagTX::sendCommand(bool shotCommand, uint8_t command, uint64_t data) {
         Serial.println("short command");
         // Use 12 bits for short commands
         encodedData |= (command & 0xF) << 6;  // Encode command (bits 10-7)    - 4 bits
-        encodedData |= (data & 0x3F);         // Encode player ID (bits 6-1)     - 6 bits
+        encodedData |= (data & 0x3F) ;         // Encode player ID (bits 6-1)     - 6 bits             
     } else {
         Serial.println("long command");
         // Use 22 bits for long commands

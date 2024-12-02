@@ -118,8 +118,6 @@ void setup()
     lightStateService.begin();
     // start the light service
     lightMqttSettingsService.begin();
-
-
     strip.begin();           // INITIALIZE NeoPixel strip object (REQUIRED)
     strip.setBrightness(50); // Set BRIGHTNESS to about 1/5 (max = 255)
     strip.setPixelColor(0, strip.Color(128,0,128));
@@ -142,6 +140,11 @@ void setup()
     nade.SetTx(21,2);
     nade.txConfig();
     } 
+    esp32sveltekit.begin();
+    // load the initial light settings
+    lightStateService.begin();
+    // start the light service
+    lightMqttSettingsService.begin();
     Serial.println("ready");
 }
 
@@ -150,7 +153,9 @@ void loop()
     btn.tick(); 
     if(fired==false && trigger==true && millis() - triggerTime >= triggertimer ){
       trigger = false;
-      nade.sendCommand(true, 0x83, 0x0b);
+      //nade.sendCommand(true, 0x83, 0x0b);
+      nade.fireShot(0x3b, 100);
+      //nade.sendCommand(false, 0x80, 0x00);
       Serial.println("Clicked!");
       fired = true;
   } 
