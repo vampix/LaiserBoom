@@ -1,0 +1,24 @@
+{
+    "$schema": "https://raw.githubusercontent.com/platformio/platformio-core/develop/platformio/assets/schema/library.json",
+    "name": "LaserWar",
+    "version": "2.0.1",
+    "description": "A library for send and receive MilesTag commands with LaserWar protocol",
+    "authors": {
+        "name": "Eugeniy Maslyaev",
+        "email": "mrjohn2009@yandex.ru"
+    },
+    "frameworks": ["arduino"],
+    "keywords": ["LaserWar", "MilesTag", "LaserTag"],
+    "examples": [
+        {
+            "name": "Send command",
+            "base": "examples/send_command",
+            "files": ["send_command.ino"]
+        },
+        {
+            "name": "Receive command",
+            "base": "examples/read_command",
+            "files": ["read_command.ino"]
+        }
+    ]
+}

@@ -1,0 +1,25 @@
+LaserWar	KEYWORD1
+read	KEYWORD2
+send	KEYWORD2
+setAnalogPin KEYWORD2
+setThreshold KEYWORD2
+setDurationOfHeader KEYWORD2
+setDurationOfOne KEYWORD2
+setPin KEYWORD2
+
+LWShoot KEYWORD1
+load KEYWORD2
+getColor KEYWORD2
+getDamage KEYWORD2
+getId KEYWORD2
+getCommand KEYWORD2
+setColor KEYWORD2
+setId KEYWORD2
+setDamage KEYWORD2
+
+LWCommand KEYWORD1
+getGroup KEYWORD2
+getData KEYWORD2
+setGroup KEYWORD2
+setData KEYWORD2
+getCommand KEYWORD2
