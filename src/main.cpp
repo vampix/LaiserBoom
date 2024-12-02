@@ -17,23 +17,18 @@
 #include <LightStateService.h>
 #include <PsychicHttpServer.h>
 #include <OneButton.h>
-#include <MilesTag.h>
-
+#include <LaserWar.h>
 #include <Adafruit_NeoPixel.h>
 #ifdef __AVR__
   #include <avr/power.h>
 #endif
 
 
-
-MilesTagTX nade = MilesTagTX(21,2);
-
+#define IR_PIN 21
 #define SERIAL_BAUD_RATE 115200
 
 PsychicHttpServer server;
-
 ESP32SvelteKit esp32sveltekit(&server, 120);
-
 LightMqttSettingsService lightMqttSettingsService = LightMqttSettingsService(&server,
                                                                              esp32sveltekit.getFS(),
                                                                              esp32sveltekit.getSecurityManager());
@@ -44,24 +39,21 @@ LightStateService lightStateService = LightStateService(&server,
                                                         esp32sveltekit.getMqttClient(),
                                                         &lightMqttSettingsService);
 
-// How many leds in your strip?
 #define PIN       13
 #define NUMPIXELS 1 
-
-// For led chips like WS2812, which have a data line, ground, and power, you just
-// need to define DATA_PIN.  For led chipsets that are SPI based (four wires - data, clock,
-// ground, and power), like the LPD8806 define both DATA_PIN and CLOCK_PIN
-// Clock pin only needed for SPI based chipsets when not using hardware SPI
-#define DATA_PIN 13
 #define BRIGHTNESS  20
-#define COLOR_ORDER GRB
 #define BUTTON_PIN 14
 
 #define ADAFRUIT_RMT_CHANNEL_MAX 1
 Adafruit_NeoPixel strip(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 
+LaserWar lwSender(IR_PIN);
+LWCommand bangCmd(LwSetting::AdminCommand, LwAdminSetting::Explode);
+LWCommand blindCmd(LwSetting::AdminCommand, LwAdminSetting::StunPlayer);
+
 bool fired = false;
 bool trigger = false;
+bool broke = true;
 
 const int triggertimer = 3000;
 const int resettimer = 10000;
@@ -75,15 +67,11 @@ OneButton btn = OneButton(
   true,        // Button is active LOW
   true         // Enable internal pull-up resistor
 );
-
-
 // Create tasks
-
 TaskHandle_t led_T    = nullptr;  // LED Task for LED control
 
 // Declarations
 void ledTask(void *pvParameters); // LED
-
 
 // Handler function for a single click:
 static void handlelongstop() {
@@ -95,7 +83,7 @@ static void handlelongstop() {
 
 static void splintsave()
 {  
-  if(fired==true && resetInProgress==false){
+  if(fired==true && resetInProgress==false && trigger==false){
     resetTime = millis();
     resetInProgress = true;
     Serial.println("resetInProgress");
@@ -103,6 +91,8 @@ static void splintsave()
     Serial.println("Reset!");
     fired = false;
     resetInProgress = false;
+  } else if(fired==true && trigger==false){
+    broke = true;
   }
 }
 
@@ -110,8 +100,9 @@ void setup()
 {
     Serial.begin(SERIAL_BAUD_RATE);
     pinMode(BUTTON_PIN, INPUT);
+    pinMode(IR_PIN, OUTPUT);
     if(digitalRead(BUTTON_PIN)==HIGH){
-            // start ESP32-SvelteKit
+          // start ESP32-SvelteKit
     Serial.println("HIGH");
     esp32sveltekit.begin();
     // load the initial light settings
@@ -123,7 +114,6 @@ void setup()
     strip.setPixelColor(0, strip.Color(128,0,128));
     strip.show();            // Turn OFF all pixels ASAP
     } else {
-
                                      // Start Tasks here:
     xTaskCreatePinnedToCore(ledTask,   /* Task function. */
                         "ledTask", /* name of task. */
@@ -137,8 +127,6 @@ void setup()
     btn.attachDuringLongPress(splintsave);
     btn.setLongPressIntervalMs(500);
     btn.tick();  
-    nade.SetTx(21,2);
-    nade.txConfig();
     } 
     esp32sveltekit.begin();
     // load the initial light settings
@@ -150,15 +138,15 @@ void setup()
 
 void loop()
 {
-    btn.tick(); 
-    if(fired==false && trigger==true && millis() - triggerTime >= triggertimer ){
+    btn.tick();
+    if(broke==false && fired==false && trigger==true && millis() - triggerTime >= triggertimer ){
       trigger = false;
-      //nade.sendCommand(true, 0x83, 0x0b);
-      nade.fireShot(0x3b, 100);
-      //nade.sendCommand(false, 0x80, 0x00);
+      lwSender.send(bangCmd);
+      //lwSender.send(blindCmd);
       Serial.println("Clicked!");
       fired = true;
-  } 
+      trigger = false;
+  }
 }
 
 void ledTask(void *pvParameters)
@@ -207,6 +195,9 @@ void ledTask(void *pvParameters)
     } else if (fired==false && trigger==false && resetInProgress==false){
       strip.setPixelColor(0, strip.Color(255,0,0));
       strip.show();  
+    } else if( broke== true){
+      strip.setPixelColor(0, strip.Color(255,255,0));
+      strip.show(); 
     } 
   }
 }
